@@ -1,29 +1,29 @@
 const CANVAS_SIZE = {
-    width: 300,
-    height: 1200,
+    width: 200,
+    height: 800,
 }
 
 const TILE_SIZE = {
-    width: 30,
-    height: 30
+    width: 20,
+    height: 20
 }
 
-const FPS = 10;
+const FPS = 60;
 
 const BORDER_THICKNESS = 4;
 
 const GRAVITY_VEL = {
     xChange: 0,
-    yChange: 30
+    yChange: 10
 }
 
 const WALL_THICKNESS = 20;
 
-const HORIZONTAL_MOVEMENT_VEL = Object.assign({} , {...GRAVITY_VEL,xChange: 30});
+const HORIZONTAL_MOVEMENT_VEL = Object.assign({} , {...GRAVITY_VEL,xChange: 20});
 
-const FLOOR_THICKNESS = 10;
+const FLOOR_THICKNESS = 20;
 
-const DOWN_MOVEMENT_VEL = Object.assign({} , {...GRAVITY_VEL,yChange: 60});
+const DOWN_MOVEMENT_VEL = Object.assign({} , {...GRAVITY_VEL,yChange: 40});
 
 
 const TETROMINOES = {
