@@ -1,4 +1,4 @@
-const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I','I', 'L', 'O','O','O', 'T', 'J'];
+const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'L', 'O', 'O', 'O', 'T', 'J'];
 
 function TetrominoQueue() {
     this.tetrominoes = [...TETROMINOES_SHAPES];
@@ -42,6 +42,7 @@ function App() {
     this.activeTet = null;
     this.activeX = 0;
     this.activeY = 0;
+    this.orien = 0; // 0,1,2,3
     this.markingNumberCounter = 0;
 
     this.tetrominoQueue = new TetrominoQueue();
@@ -74,10 +75,11 @@ function App() {
             this.tetrominoQueue.reinitQueue();
             this.tetrominoQueue.randomizeQueue();
         }
+        this.activeTet?.free();
         this.markingNumberCounter++;
         this.activeX = 80;
         this.activeY = 20;
-        this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter , this.context);
+        this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
     }
 
     this.drawGrid = () => {
@@ -115,6 +117,11 @@ function App() {
         }
     }
 
+    this.changeOrien = () => {
+        this.orien = (this.orien + 1) % 4; // % 4 keeps the this.orien under 4 => (0 - 3)
+        this.activeTet.rotate(this.orien);
+    }
+
     this.bindKeys = () => {
         document.addEventListener('keydown', (e) => {
             switch (e.key) {
@@ -127,6 +134,14 @@ function App() {
                 case 'ArrowDown':
                     this.move('down');
                     break;
+                case 'Spacebar':
+                    this.move('rotate');
+                    break;
+
+                case ' ':
+                    this.move('rotate');
+                    break;
+
                 case 'Space':
                     this.move('rotate');
                     break;
@@ -143,13 +158,15 @@ function App() {
                     this.activeX += GRAVITY_VEL.xChange;
                     this.activeY += GRAVITY_VEL.yChange;
                     this.activeTet.moveGravity();
-                }
-                else {
+                } else {
                     this.createNewTetromino();
                 }
                 break;
             case 'left':
-                if (this.checkMove({ xChange: HORIZONTAL_MOVEMENT_VEL.xChange * -1, yChange: HORIZONTAL_MOVEMENT_VEL.yChange })) {
+                if (this.checkMove({
+                        xChange: HORIZONTAL_MOVEMENT_VEL.xChange * -1,
+                        yChange: HORIZONTAL_MOVEMENT_VEL.yChange
+                    })) {
                     markTetromino(0, 0, this.activeTet.shape, 0);
                     markTetromino(HORIZONTAL_MOVEMENT_VEL.xChange * -1, HORIZONTAL_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
                     this.activeX += HORIZONTAL_MOVEMENT_VEL.xChange * -1;
@@ -175,14 +192,22 @@ function App() {
                 if (this.checkMove(DOWN_MOVEMENT_VEL)) {
                     markTetromino(0, 0, this.activeTet.shape, 0);
                     markTetromino(DOWN_MOVEMENT_VEL.xChange, DOWN_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
-                    this.activeY += DOWN_MOVEMENT_VEL.yChange;
+                    this.activeY += DOWN_MOVEMENT_VEL.yChange / 2; // because there is movement with gravity
                     this.activeX += DOWN_MOVEMENT_VEL.xChange;
                     this.activeTet.moveDown();
                     // markBoardAt(this.activeX, this.activeY, 1);
 
                 }
+                else {
+                    // for one gap situations
+                    this.move('gravity');
+                }
                 break;
             case 'rotate':
+                markTetromino(0, 0, this.activeTet.shape, 0);
+                this.changeOrien();
+                markTetromino(0, 0, this.activeTet.shape, this.activeTet.markingNo);
+
                 break;
         }
     }
@@ -197,13 +222,13 @@ function App() {
     }
     this.isCollision = (xChange, yChange) => {
         let isCol = false;
-        // reset
-        
+
         this.activeTet.blockArr.forEach(block => {
             // block.y is the exact y in the canvas
             // block.y / TILE_SIZE.height is the y position on a grid with one pixel equal to 30X30
-            let indX = Math.floor(xChange / TILE_SIZE.width) + Math.floor(block.x / TILE_SIZE.width);
-            let indY = Math.floor(yChange / TILE_SIZE.height) + Math.floor(block.y / TILE_SIZE.height);
+            // Math.floor((xChange + block.x) / TILE_SIZE.width)
+            let indX = Math.floor((xChange + block.x) / TILE_SIZE.width);
+            let indY = Math.floor((yChange + block.y) / TILE_SIZE.height);
             if (indX > this.width || indY > this.height || indX < 0 || indY < 0) {
                 return true;
             }
@@ -234,38 +259,41 @@ function App() {
     markBoardAt = (xChange, yChange, val) => {
         let indY = Math.floor((this.activeY + yChange) / TILE_SIZE.height);
         let indX = Math.floor((this.activeX + xChange) / TILE_SIZE.width);
-        if (this.board && indX > 0 && indX < 10 && indY > 0 && indY < 40) {
+        // TODO: fix bug for the y being more than 800
+        if (this.board && indX >= 0 && indX < 10 && indY >= 0 && indY < 40) {
             this.board[indY][indX] = val;
         }
     }
 
     markTetromino = (xChange, yChange, shape, val) => {
         console.log(shape);
-        TETROMINOES[shape].blocks.forEach((block) => {
+        TETROMINOES[shape].blocks[this.orien].forEach((block) => {
             markBoardAt(xChange + block.x * TILE_SIZE.width, yChange + block.y * TILE_SIZE.height, val);
         });
     }
 
     this.boardPos = (x, y) => {
-        let indX =  Math.floor(x / TILE_SIZE.width);
-        let indY =  Math.floor(y / TILE_SIZE.height);
+        let indX = Math.floor(x / TILE_SIZE.width);
+        let indY = Math.floor(y / TILE_SIZE.height);
         return this.board[indY][indX];
     }
 }
 
-function Tetromino(x, y, shape, markingNo, ctx ) {
+function Tetromino(x, y, shape, markingNo, ctx) {
     this.markingNo = markingNo;
     this.ctx = ctx;
     this.x = x;
     this.y = y;
     this.shape = shape;
-    this.rotation = 0; // 5 positions
+    this.orien = 0; // 5 positions
     this.blockArr = []
 
     this.draw = function () {
         this.ctx.fillStyle = TETROMINOES[this.shape].color;
         this.ctx.strokeStyle = 'rgb(255,255,255)';
-        TETROMINOES[this.shape].blocks.forEach(tetroBlock => {
+        // clear
+        this.blockArr = [];
+        TETROMINOES[this.shape].blocks[this.orien].forEach(tetroBlock => {
             let block = new Block(tetroBlock.x * TILE_SIZE.width + this.x, tetroBlock.y * TILE_SIZE.height + this.y, this.ctx);
             block.draw();
             this.blockArr.push(block)
@@ -273,7 +301,7 @@ function Tetromino(x, y, shape, markingNo, ctx ) {
     }
 
     this.update = function (xChange, yChange) {
-        // check if boundaries are exceeded
+        // update
         this.x += xChange;
         this.y += yChange;
         this.blockArr.forEach(block => {
@@ -281,11 +309,12 @@ function Tetromino(x, y, shape, markingNo, ctx ) {
         });
     }
 
-    this.clear = function () {
+    // free memory
+    this.free = function () {
         this.blockArr.forEach(block => {
-            this.blockArr = [];
-            block.clear();
+            delete block;
         });
+        this.blockArr = [];
     }
 
     this.moveGravity = function () {
@@ -302,6 +331,11 @@ function Tetromino(x, y, shape, markingNo, ctx ) {
 
     this.moveRight = function () {
         this.update(HORIZONTAL_MOVEMENT_VEL.xChange, HORIZONTAL_MOVEMENT_VEL.yChange);
+    }
+
+    this.rotate = function () {
+        this.orien = (this.orien + 1) % 4;
+        this.update(0,0);
     }
 }
 
@@ -321,7 +355,7 @@ function Block(x, y, ctx) {
         this.y += yChange;
         this.draw();
     }
-
+    // maybe add a delete
     this.clear = function () {
         this.ctx.clearRect(this.x, this.y, TILE_SIZE.width, TILE_SIZE.height);
     }
