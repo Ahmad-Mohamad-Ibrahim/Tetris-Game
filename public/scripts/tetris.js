@@ -1,3 +1,18 @@
+// The idea is I have a board like for example
+// [ 1,0,0,1
+//   1,2,2,1
+//   1,2,2,1
+// ]
+// And 1 => a block colored red
+// 2 is green and 0 is always black
+// when a row is filled with blocks we call that 
+    // 1. removes this row
+    // 2. add a new row to the top of the board
+    // 3. repaint() the board which is a function like drawGrid but it uses the board and an array like this 
+    // [0 => black, 1 => red, 2 => green] 
+
+const BOARD_WIDTH = 10;
+
 const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'L', 'O', 'O', 'O', 'T', 'J'];
 
 function TetrominoQueue() {
@@ -12,16 +27,6 @@ function TetrominoQueue() {
     this.removeTetromino = () => {
         return this.tetrominoes.shift();
     }
-
-    this.shiftBoard = () => {
-        // [1,0,0,0]
-        // [0,1,0,0]
-        // [0,0,1,0]
-        // [0,0,0,1]
-        // this.board.shift()
-    }
-
-    
 
     this.randomizeQueue = () => {
         // Fisher-Yates shuffle
@@ -54,6 +59,10 @@ function App() {
     this.activeY = 0;
     this.orien = 0; // 0,1,2,3
     this.markingNumberCounter = 0;
+    this.score = 0;
+    this.scoreEle = document.getElementById('score');
+
+    this.blockColorsInOrder = ['#131516'];
 
     this.tetrominoQueue = new TetrominoQueue();
 
@@ -90,7 +99,13 @@ function App() {
         this.activeX = 80;
         this.activeY = 20;
         this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
+        // when I create a new tetromino with markingNumberCounter as index 
+        this.blockColorsInOrder.splice(this.activeTet.markingNo , 0 ,TETROMINOES[this.activeTet.shape].color);
         this.resetOrien();
+        
+        // only scan rows when the tetromino settles in        
+        this.scanForRows();
+
     }
 
     this.drawGrid = () => {
@@ -126,6 +141,50 @@ function App() {
                 this.board[i].push(0);
             }
         }
+    }
+
+    this.incrementScore = () => {
+        this.score += 966;
+        this.scoreEle.innerText = this.score;
+    }
+
+    this.repaintBoard = () => {
+
+        // use the colors array
+        // [0 => black, 1 => red, 2 => green] 
+        for (let i = 0; i < this.height; i++) {
+            for (let j = 0; j < this.width; j++) {
+                this.context.fillStyle = this.blockColorsInOrder[this.board[i][j]];
+                this.context.fillRect(j * TILE_SIZE.width, i * TILE_SIZE.height, TILE_SIZE.width, TILE_SIZE.height);
+            }
+        }            
+    }
+
+    this.scanForRows = () => {
+        // scan for filled rows and explode the first
+        for(let row of this.board ) {
+            let filled = true;
+            let i = 0;
+            for (let col of row) {
+                if (col == 0) {
+                    filled &= false;
+                }
+            }
+
+            if (filled) {
+                // shift the board
+                let rowIndx = this.board.indexOf(row);
+                this.board.splice(rowIndx, 1);
+                this.board.unshift(Array(this.width).fill(0));
+                this.repaintBoard();
+                this.incrementScore();
+                // break;
+            }
+        }
+        // scan for a row that have all above 0
+        // found at yIndex = 2
+        // translate the index to a position. 2 * 20 = 40
+        // take the 
     }
 
     this.changeOrien = () => {

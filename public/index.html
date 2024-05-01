@@ -9,10 +9,13 @@
 <body class="bg-dark overflow-hidden">
     <!-- MARK: APP Screen 
     -->
-    <main class="flex items-end justify-center min-h-screen py-16">
+    <main class="flex items-end justify-center min-h-screen py-16 gap-8">
         <canvas class="border border-white -mt-[48%]" id="tetris">
             <h4>Welcome To Tetris</h4>
         </canvas>
+        <div class="self-start min-h-[400px] p-16 flex flex-col items-center text-center bg-gray-950 text-white">
+            <h1><span class="font-bold">Score :</span><span id="score">0000</span></h1>
+        </div>
     </main>
 
     <script src="./scripts/settings.js"></script>
