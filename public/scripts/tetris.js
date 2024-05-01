@@ -6,14 +6,15 @@
 // And 1 => a block colored red
 // 2 is green and 0 is always black
 // when a row is filled with blocks we call that 
-    // 1. removes this row
-    // 2. add a new row to the top of the board
-    // 3. repaint() the board which is a function like drawGrid but it uses the board and an array like this 
-    // [0 => black, 1 => red, 2 => green] 
+// 1. removes this row
+// 2. add a new row to the top of the board
+// 3. repaint() the board which is a function like drawGrid but it uses the board and an array like this 
+// [0 => black, 1 => red, 2 => green] 
 
 const BOARD_WIDTH = 10;
 
 const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'L', 'O', 'O', 'O', 'T', 'J'];
+// const TETROMINOES_SHAPES = ['T' , 'T'] // for testing
 
 function TetrominoQueue() {
     this.tetrominoes = [...TETROMINOES_SHAPES];
@@ -100,9 +101,9 @@ function App() {
         this.activeY = 20;
         this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
         // when I create a new tetromino with markingNumberCounter as index 
-        this.blockColorsInOrder.splice(this.activeTet.markingNo , 0 ,TETROMINOES[this.activeTet.shape].color);
+        this.blockColorsInOrder.splice(this.activeTet.markingNo, 0, TETROMINOES[this.activeTet.shape].color);
         this.resetOrien();
-        
+
         // only scan rows when the tetromino settles in        
         this.scanForRows();
 
@@ -157,12 +158,12 @@ function App() {
                 this.context.fillStyle = this.blockColorsInOrder[this.board[i][j]];
                 this.context.fillRect(j * TILE_SIZE.width, i * TILE_SIZE.height, TILE_SIZE.width, TILE_SIZE.height);
             }
-        }            
+        }
     }
 
     this.scanForRows = () => {
         // scan for filled rows and explode the first
-        for(let row of this.board ) {
+        for (let row of this.board) {
             let filled = true;
             let i = 0;
             for (let col of row) {
@@ -187,8 +188,12 @@ function App() {
         // take the 
     }
 
-    this.changeOrien = () => {
-        this.orien = (this.orien + 1) % 4; // % 4 keeps the this.orien under 4 => (0 - 3)
+    this.changeOrien = (num) => {
+        this.orien = (this.orien + num) % 4; // % 4 keeps the this.orien under 4 => (0 - 3)
+        if (this.orien < 0) {
+            this.orien = 3;
+        }
+         
     }
 
     this.resetOrien = () => {
@@ -204,19 +209,25 @@ function App() {
                 case 'ArrowRight':
                     this.move('right');
                     break;
-                case 'ArrowDown':
-                    this.move('down');
+
+                case 'ArrowUp':
+                    this.move('anti');
                     break;
+
+                case 'ArrowDown':
+                    this.move('clock');
+                    break;
+
                 case 'Spacebar':
-                    this.move('rotate');
+                    this.move('down');
                     break;
 
                 case ' ':
-                    this.move('rotate');
+                    this.move('down');
                     break;
 
                 case 'Space':
-                    this.move('rotate');
+                    this.move('down');
                     break;
             }
         });
@@ -275,11 +286,26 @@ function App() {
                     // this.move('gravity');
                 }
                 break;
-            case 'rotate':
+            case 'clock':
                 // have to check rotation and maybe wall bounce here
-                if (this.checkRotation()) {
+                if (this.checkRotation(1)) {
                     this.markTetromino(0, 0, this.activeTet.shape, 0);
-                    this.changeOrien();
+                    this.changeOrien(1);
+                    this.activeTet.rotate(this.orien);
+                    this.markTetromino(0, 0, this.activeTet.shape, this.activeTet.markingNo);
+                } else {
+                    // reset orientation
+                    // this.resetOrien();
+                    // wall bounce
+                }
+
+                break;
+
+            case 'anti':
+                // have to check rotation and maybe wall bounce here
+                if (this.checkRotation(-1)) {
+                    this.markTetromino(0, 0, this.activeTet.shape, 0);
+                    this.changeOrien(-1);
                     this.activeTet.rotate(this.orien);
                     this.markTetromino(0, 0, this.activeTet.shape, this.activeTet.markingNo);
                 } else {
@@ -320,8 +346,8 @@ function App() {
         return isCol;
     }
 
-    this.checkRotation = () => {
-        this.changeOrien();
+    this.checkRotation = (numb) => {
+        this.changeOrien(numb);
         let canRotate = true;
         TETROMINOES[this.activeTet.shape].blocks[this.orien].forEach(block => {
             // check boundaries
@@ -443,9 +469,9 @@ function Tetromino(x, y, shape, markingNo, ctx) {
         this.blockArr = [];
     }
 
-    this.rotate = function () {
+    this.rotate = function (orientation) {
         this.clear();
-        this.orien = (this.orien + 1) % 4;
+        this.orien = orientation;
         this.draw();
     }
 }
