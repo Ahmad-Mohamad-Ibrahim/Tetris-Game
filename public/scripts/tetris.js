@@ -13,6 +13,16 @@ function TetrominoQueue() {
         return this.tetrominoes.shift();
     }
 
+    this.shiftBoard = () => {
+        // [1,0,0,0]
+        // [0,1,0,0]
+        // [0,0,1,0]
+        // [0,0,0,1]
+        // this.board.shift()
+    }
+
+    
+
     this.randomizeQueue = () => {
         // Fisher-Yates shuffle
         for (let i = this.tetrominoes.length - 1; i > 0; i--) {
@@ -80,6 +90,7 @@ function App() {
         this.activeX = 80;
         this.activeY = 20;
         this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
+        this.resetOrien();
     }
 
     this.drawGrid = () => {
@@ -119,7 +130,10 @@ function App() {
 
     this.changeOrien = () => {
         this.orien = (this.orien + 1) % 4; // % 4 keeps the this.orien under 4 => (0 - 3)
-        this.activeTet.rotate(this.orien);
+    }
+
+    this.resetOrien = () => {
+        this.orien = this.activeTet.orien; // % 4 keeps the this.orien under 4 => (0 - 3)
     }
 
     this.bindKeys = () => {
@@ -153,8 +167,8 @@ function App() {
         switch (dir) {
             case 'gravity':
                 if (this.checkMove(GRAVITY_VEL)) {
-                    markTetromino(0, 0, this.activeTet.shape, 0);
-                    markTetromino(GRAVITY_VEL.xChange, GRAVITY_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
+                    this.markTetromino(0, 0, this.activeTet.shape, 0);
+                    this.markTetromino(GRAVITY_VEL.xChange, GRAVITY_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
                     this.activeX += GRAVITY_VEL.xChange;
                     this.activeY += GRAVITY_VEL.yChange;
                     this.activeTet.moveGravity();
@@ -167,8 +181,8 @@ function App() {
                         xChange: HORIZONTAL_MOVEMENT_VEL.xChange * -1,
                         yChange: HORIZONTAL_MOVEMENT_VEL.yChange
                     })) {
-                    markTetromino(0, 0, this.activeTet.shape, 0);
-                    markTetromino(HORIZONTAL_MOVEMENT_VEL.xChange * -1, HORIZONTAL_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
+                    this.markTetromino(0, 0, this.activeTet.shape, 0);
+                    this.markTetromino(HORIZONTAL_MOVEMENT_VEL.xChange * -1, HORIZONTAL_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
                     this.activeX += HORIZONTAL_MOVEMENT_VEL.xChange * -1;
                     this.activeY += HORIZONTAL_MOVEMENT_VEL.yChange;
                     this.activeTet.moveLeft();
@@ -177,8 +191,8 @@ function App() {
                 break;
             case 'right':
                 if (this.checkMove(HORIZONTAL_MOVEMENT_VEL)) {
-                    markTetromino(0, 0, this.activeTet.shape, 0);
-                    markTetromino(HORIZONTAL_MOVEMENT_VEL.xChange, HORIZONTAL_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
+                    this.markTetromino(0, 0, this.activeTet.shape, 0);
+                    this.markTetromino(HORIZONTAL_MOVEMENT_VEL.xChange, HORIZONTAL_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
 
                     this.activeX += HORIZONTAL_MOVEMENT_VEL.xChange;
                     this.activeY += HORIZONTAL_MOVEMENT_VEL.yChange;
@@ -190,23 +204,30 @@ function App() {
                 break;
             case 'down':
                 if (this.checkMove(DOWN_MOVEMENT_VEL)) {
-                    markTetromino(0, 0, this.activeTet.shape, 0);
-                    markTetromino(DOWN_MOVEMENT_VEL.xChange, DOWN_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
+                    this.markTetromino(0, 0, this.activeTet.shape, 0);
+                    this.markTetromino(DOWN_MOVEMENT_VEL.xChange, DOWN_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
                     this.activeY += DOWN_MOVEMENT_VEL.yChange / 2; // because there is movement with gravity
                     this.activeX += DOWN_MOVEMENT_VEL.xChange;
                     this.activeTet.moveDown();
                     // markBoardAt(this.activeX, this.activeY, 1);
 
-                }
-                else {
+                } else {
                     // for one gap situations
-                    this.move('gravity');
+                    // this.move('gravity');
                 }
                 break;
             case 'rotate':
-                markTetromino(0, 0, this.activeTet.shape, 0);
-                this.changeOrien();
-                markTetromino(0, 0, this.activeTet.shape, this.activeTet.markingNo);
+                // have to check rotation and maybe wall bounce here
+                if (this.checkRotation()) {
+                    this.markTetromino(0, 0, this.activeTet.shape, 0);
+                    this.changeOrien();
+                    this.activeTet.rotate(this.orien);
+                    this.markTetromino(0, 0, this.activeTet.shape, this.activeTet.markingNo);
+                } else {
+                    // reset orientation
+                    // this.resetOrien();
+                    // wall bounce
+                }
 
                 break;
         }
@@ -240,6 +261,31 @@ function App() {
         return isCol;
     }
 
+    this.checkRotation = () => {
+        this.changeOrien();
+        let canRotate = true;
+        TETROMINOES[this.activeTet.shape].blocks[this.orien].forEach(block => {
+            // check boundaries
+            let xPos = block.x * TILE_SIZE.width + this.activeX;
+            let xIndex = block.x + Math.floor(this.activeX / TILE_SIZE.width);
+            let yIndex = block.y + Math.floor(this.activeY / TILE_SIZE.height);
+            let boardPos = this.board[yIndex][xIndex];
+            if (xPos <= 0 ||
+                xPos > this.canvas.width - WALL_THICKNESS) {
+                canRotate &= false;
+                console.log("Can't Rotate");
+            }
+
+            if (boardPos > 0 && boardPos != this.activeTet.markingNo) {
+                canRotate &= false;
+                console.log("Can't Rotate");
+            }
+        });
+
+        this.resetOrien();
+        return canRotate;
+    }
+
     // takes x and y change
     this.isOutBoundaries = (xChange, yChange) => {
         let isOB = false;
@@ -256,7 +302,7 @@ function App() {
         return isOB;
     }
 
-    markBoardAt = (xChange, yChange, val) => {
+    this.markBoardAt = (xChange, yChange, val) => {
         let indY = Math.floor((this.activeY + yChange) / TILE_SIZE.height);
         let indX = Math.floor((this.activeX + xChange) / TILE_SIZE.width);
         // TODO: fix bug for the y being more than 800
@@ -265,10 +311,10 @@ function App() {
         }
     }
 
-    markTetromino = (xChange, yChange, shape, val) => {
+    this.markTetromino = (xChange, yChange, shape, val) => {
         console.log(shape);
         TETROMINOES[shape].blocks[this.orien].forEach((block) => {
-            markBoardAt(xChange + block.x * TILE_SIZE.width, yChange + block.y * TILE_SIZE.height, val);
+            this.markBoardAt(xChange + block.x * TILE_SIZE.width, yChange + block.y * TILE_SIZE.height, val);
         });
     }
 
@@ -292,7 +338,7 @@ function Tetromino(x, y, shape, markingNo, ctx) {
         this.ctx.fillStyle = TETROMINOES[this.shape].color;
         this.ctx.strokeStyle = 'rgb(255,255,255)';
         // clear
-        this.blockArr = [];
+        this.free();
         TETROMINOES[this.shape].blocks[this.orien].forEach(tetroBlock => {
             let block = new Block(tetroBlock.x * TILE_SIZE.width + this.x, tetroBlock.y * TILE_SIZE.height + this.y, this.ctx);
             block.draw();
@@ -311,9 +357,6 @@ function Tetromino(x, y, shape, markingNo, ctx) {
 
     // free memory
     this.free = function () {
-        this.blockArr.forEach(block => {
-            delete block;
-        });
         this.blockArr = [];
     }
 
@@ -333,9 +376,18 @@ function Tetromino(x, y, shape, markingNo, ctx) {
         this.update(HORIZONTAL_MOVEMENT_VEL.xChange, HORIZONTAL_MOVEMENT_VEL.yChange);
     }
 
+    this.clear = () => {
+        TETROMINOES[this.shape].blocks[this.orien].forEach(tetroBlock => {
+            let block = new Block(tetroBlock.x * TILE_SIZE.width + this.x, tetroBlock.y * TILE_SIZE.height + this.y, this.ctx);
+            block.clear();
+        });
+        this.blockArr = [];
+    }
+
     this.rotate = function () {
+        this.clear();
         this.orien = (this.orien + 1) % 4;
-        this.update(0,0);
+        this.draw();
     }
 }
 
