@@ -3,6 +3,10 @@ const CANVAS_SIZE = {
     height: 800,
 }
 
+const GAME_OVER_AT_ROW = 12;
+
+const TILE_CREATED_AT = 10;
+
 const TILE_SIZE = {
     width: 20,
     height: 20

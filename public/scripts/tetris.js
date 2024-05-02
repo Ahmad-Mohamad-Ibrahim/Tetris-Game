@@ -97,15 +97,18 @@ function App() {
         }
         this.activeTet?.free();
         this.markingNumberCounter++;
-        this.activeX = 80;
-        this.activeY = 20;
+        this.activeX = 80; // should be random
+        this.activeY = TILE_CREATED_AT * TILE_SIZE.height;
         this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
+        this.activeTet.draw();
         // when I create a new tetromino with markingNumberCounter as index 
         this.blockColorsInOrder.splice(this.activeTet.markingNo, 0, TETROMINOES[this.activeTet.shape].color);
         this.resetOrien();
 
         // only scan rows when the tetromino settles in        
         this.scanForRows();
+
+        this.scanGameOver();
 
     }
 
@@ -186,6 +189,24 @@ function App() {
         // found at yIndex = 2
         // translate the index to a position. 2 * 20 = 40
         // take the 
+    }
+
+    this.stop = () => {
+        clearInterval(this.interval);
+    }
+
+    this.showGameOver = () => {
+        this.context.fillStyle = 'white';
+        this.context.font = '30px Arial';
+        this.context.fillText('Game Over', 1 * TILE_SIZE.width  , (GAME_OVER_AT_ROW + 2) * TILE_SIZE.height);
+    }
+
+    this.scanGameOver = () => {
+        // check if the active tetromino is at the top of the board
+        if (this.isCollision(0, 0)) {
+            this.stop();
+            this.showGameOver();
+        }
     }
 
     this.changeOrien = (num) => {
@@ -427,7 +448,7 @@ function Tetromino(x, y, shape, markingNo, ctx) {
         TETROMINOES[this.shape].blocks[this.orien].forEach(tetroBlock => {
             let block = new Block(tetroBlock.x * TILE_SIZE.width + this.x, tetroBlock.y * TILE_SIZE.height + this.y, this.ctx);
             block.draw();
-            this.blockArr.push(block)
+            this.blockArr.push(block);
         });
     }
 
@@ -498,8 +519,14 @@ function Block(x, y, ctx) {
     }
 }
 
+const startBtn = document.getElementById('startBtn');
 
 document.body.onload = () => {
-    let app = new App();
-    app.start();
+    let app = new App(); 
+    let clickHandler = () => {
+        app.start();
+        startBtn.removeEventListener('click' , clickHandler);
+    }  
+    startBtn.addEventListener('click' , clickHandler); 
+
 }
