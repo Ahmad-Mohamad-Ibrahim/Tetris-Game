@@ -12,7 +12,7 @@ const TILE_SIZE = {
     height: 20
 }
 
-const FPS = 8;
+const FPS = 10;
 
 const BORDER_THICKNESS = 4;
 
@@ -23,7 +23,7 @@ const GRAVITY_VEL = {
 
 const WALL_THICKNESS = 20;
 
-const HORIZONTAL_MOVEMENT_VEL = Object.assign({} , {...GRAVITY_VEL,xChange: 20});
+const HORIZONTAL_MOVEMENT_VEL = Object.assign({} , {xChange: 20, yChange: 0});
 
 const FLOOR_THICKNESS = 20;
 

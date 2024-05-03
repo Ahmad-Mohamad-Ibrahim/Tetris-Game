@@ -13,8 +13,8 @@
 
 const BOARD_WIDTH = 10;
 
-const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'L', 'O', 'O', 'O', 'T', 'J'];
-// const TETROMINOES_SHAPES = ['T' , 'T'] // for testing
+const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'O', 'T', 'I'];
+// const TETROMINOES_SHAPES = ['I' , 'I'] // for testing
 
 function TetrominoQueue() {
     this.tetrominoes = [...TETROMINOES_SHAPES];
@@ -185,10 +185,6 @@ function App() {
                 // break;
             }
         }
-        // scan for a row that have all above 0
-        // found at yIndex = 2
-        // translate the index to a position. 2 * 20 = 40
-        // take the 
     }
 
     this.stop = () => {
@@ -367,6 +363,24 @@ function App() {
         return isCol;
     }
 
+    this.rotationWallKick = (numb, dir) => {
+        // if xPos < 0
+        // then add this.activeX + 1 * TILE_SIZE.width (move right)
+        // if xPos > this.canvas.width - WALL_THICKNESS
+        // then add this.activeX - 1 * TILE_SIZE.width (move left)
+        this.resetOrien();
+        this.move(dir);
+
+        // rotate
+        if(numb > 0) {
+            this.move('anti');
+        }
+        else {
+            this.move('clock');
+        }
+        this.changeOrien(numb);
+    }
+
     this.checkRotation = (numb) => {
         this.changeOrien(numb);
         let canRotate = true;
@@ -376,8 +390,17 @@ function App() {
             let xIndex = block.x + Math.floor(this.activeX / TILE_SIZE.width);
             let yIndex = block.y + Math.floor(this.activeY / TILE_SIZE.height);
             let boardPos = this.board[yIndex][xIndex];
-            if (xPos <= 0 ||
+            
+            if (xPos < 0 ||
                 xPos > this.canvas.width - WALL_THICKNESS) {
+                
+                // wall kick
+                if(xPos < 0) {
+                    this.rotationWallKick(numb , 'right');
+                } else {
+                    this.rotationWallKick(numb , 'left');
+                }
+
                 canRotate &= false;
                 console.log("Can't Rotate");
             }
