@@ -3,9 +3,6 @@
 ## Demo Video
 [![Watch the video](./demoVid.png)](https://www.youtube.com/embed/smFkts-Rsq0)
 
-[<img src="./demoVid.png" width="600" height="300"
-/>](https://www.youtube.com/embed/smFkts-Rsq0)
-
 ## Features
 
 - Rotation with Wall Kick.
