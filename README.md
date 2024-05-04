@@ -1,7 +1,8 @@
 # Tetris-Game
+This is a Tetris Game built with HTML, TailwindCSS, and Javascript utilizing the Canvas API
 
 ## Demo Video
-[![Watch the video](./demoVid.png)](https://www.youtube.com/embed/smFkts-Rsq0)
+
 
 ## Features
 
