@@ -3,7 +3,7 @@ const CANVAS_SIZE = {
     height: 800,
 }
 
-const GAME_OVER_AT_ROW = 35;
+const GAME_OVER_AT_ROW = 16;
 
 const TILE_CREATED_AT = 2;
 
@@ -12,7 +12,7 @@ const TILE_SIZE = {
     height: 20
 }
 
-const FPS = 10;
+const FPS = 12;
 
 const BORDER_THICKNESS = 4;
 

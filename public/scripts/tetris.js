@@ -14,7 +14,7 @@
 const BOARD_WIDTH = 10;
 
 const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'O', 'O', 'T', 'I'];
-// const TETROMINOES_SHAPES = ['I' , 'I'] // for testing
+// const TETROMINOES_SHAPES = ['L' , 'L'] // for testing
 
 function TetrominoQueue() {
     this.tetrominoes = [...TETROMINOES_SHAPES];
@@ -95,7 +95,7 @@ function App() {
         }
         this.activeTet?.free();
         this.markingNumberCounter++;
-        this.activeX = Math.floor(Math.random() * (this.width + 1)) * TILE_SIZE.width  // should be random
+        this.activeX = Math.floor(Math.random() * ((this.width - 1) - 1 + 1) + 1) * TILE_SIZE.width
         this.activeY = TILE_CREATED_AT * TILE_SIZE.height;
         this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
         this.activeTet.draw();
@@ -219,8 +219,8 @@ function App() {
 
     this.showGameOver = () => {
         this.context.fillStyle = 'white';
-        this.context.font = '30px Arial';
-        this.context.fillText('Game Over', 1 * TILE_SIZE.width, (GAME_OVER_AT_ROW + 2) * TILE_SIZE.height);
+        this.context.font = 'bold 32px Arial';
+        this.context.fillText('Game Over', 1 * TILE_SIZE.width, (GAME_OVER_AT_ROW) * TILE_SIZE.height);
     }
 
     this.scanGameOver = () => {
