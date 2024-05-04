@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="./css/styles.css">
 </head>
 
-<body class="bg-dark flex items-start overflow-hidden justify-center">
+<body class="bg-dark flex items-start lg:overflow-hidden justify-center">
     <!-- MARK: APP Screen 
     -->
     <main
@@ -17,25 +17,25 @@
         <canvas class="border border-white bg-dark -mt-28" id="tetris">
             <h4>Welcome To Tetris</h4>
         </canvas>
-        <h1 class="pb-8"><span class="font-bold">Score :</span><span id="score">00000</span></h1>
+        <h1 class="pb-1 lg:pb-8"><span class="font-bold">Score :</span><span id="score">00000</span></h1>
             <button id="startBtn" class="btn">Start</button>
             <button id="restartBtn" class="btn hidden">Restart</button>
-            <div class="grid grid-cols-2 text-white p-6 gap-6">
+            <div class="grid lg:grid-cols-2 grid-cols-4 text-white p-1 gap-2 lg:p-6 lg:gap-6">
                 <button class="btn-controls flex justify-center items-center" id="moveLeft">
-                    <img width="24" height="24" src="./img/left.png" alt="">
+                    <img width="21" height="21" src="./img/left.png" alt="">
                 </button>
                 <button class="btn-controls flex justify-center items-center" id="moveRight">
-                    <img width="24" height="24" src="./img/right.png" alt="">
+                    <img width="21" height="21" src="./img/right.png" alt="">
                 </button>
                 <button class="btn-controls" id="rotateAnti">
-                    <img width="24" height="24" src="./img/anti.png" alt="">
+                    <img width="21" height="21" src="./img/anti.png" alt="">
                 </button>
                 <button class="btn-controls" id="rotateClock">
-                    <img width="24" height="24" src="./img/anti.png" alt="">
+                    <img width="21" height="21" src="./img/anti.png" alt="">
                 </button>
             </div>
             <button class="btn-controls" id="down">
-                <img width="24" height="24" src="./img/down.png" alt="">
+                <img width="21" height="21" src="./img/down.png" alt="">
             </button>
     </main>
 

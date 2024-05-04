@@ -12,7 +12,7 @@ const TILE_SIZE = {
     height: 20
 }
 
-const FPS = 12;
+const FPS = 10;
 
 const BORDER_THICKNESS = 4;
 

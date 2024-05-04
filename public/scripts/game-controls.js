@@ -2,6 +2,9 @@ const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 
 document.body.onload = () => {
+
+    window.scrollTo(0, document.body.scrollHeight);
+    
     let app = new App();
 
     let clickHandler = () => {
