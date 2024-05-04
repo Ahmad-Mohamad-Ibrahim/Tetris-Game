@@ -13,7 +13,7 @@
 
 const BOARD_WIDTH = 10;
 
-const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'O', 'T', 'I'];
+const TETROMINOES_SHAPES = ['T', 'O', 'J', 'L', 'I', 'S', 'Z', 'I', 'I', 'I', 'O', 'O', 'T', 'I'];
 // const TETROMINOES_SHAPES = ['I' , 'I'] // for testing
 
 function TetrominoQueue() {
@@ -63,6 +63,8 @@ function App() {
     this.score = 0;
     this.scoreEle = document.getElementById('score');
 
+    this.isGameOver = false;
+
     this.blockColorsInOrder = ['#131516'];
 
     this.tetrominoQueue = new TetrominoQueue();
@@ -72,15 +74,11 @@ function App() {
     this.start = () => {
         this.initBoard();
         this.bindKeys();
-        this.tetrominoQueue.randomizeQueue();
-
-        this.interval = setInterval(this.updateGameArea, 1 / FPS * 1000);
-        this.createNewTetromino();
-        this.draw();
+        this.bindButtons();
+        this.run();
     }
 
     this.updateGameArea = () => {
-        this.clear();
         this.update();
         this.draw();
         // check if queue still have shapes
@@ -97,7 +95,7 @@ function App() {
         }
         this.activeTet?.free();
         this.markingNumberCounter++;
-        this.activeX = 80; // should be random
+        this.activeX = Math.floor(Math.random() * (this.width + 1)) * TILE_SIZE.width  // should be random
         this.activeY = TILE_CREATED_AT * TILE_SIZE.height;
         this.activeTet = new Tetromino(this.activeX, this.activeY, this.tetrominoQueue.removeTetromino(), this.markingNumberCounter, this.context);
         this.activeTet.draw();
@@ -133,10 +131,6 @@ function App() {
         this.move('gravity');
     }
 
-    this.clear = () => {
-        console.log("cleared");
-    }
-
     this.initBoard = () => {
         this.board = [];
         for (let i = 0; i < this.height; i++) {
@@ -146,10 +140,33 @@ function App() {
             }
         }
     }
+    this.animateScoreIncrement = (from, to) => {
+        const speed = 200;
+        // const value = this.score + SCORE_INCREMENT;
+        // const data = this.score;
+        let timeOut;
+        this.scoreEle.classList.add('text-green-500');
 
-    this.incrementScore = () => {
-        this.score += 966;
-        this.scoreEle.innerText = this.score;
+        let animate = () => {
+            const time = to / speed;
+            if (from < to) {
+                from = Math.ceil(from + time);
+                this.scoreEle.innerText = from;
+                setTimeout(animate, 5);
+            } else {
+                clearTimeout(timeOut);
+                this.scoreEle.innerText = to;
+                this.scoreEle.classList.remove('text-green-500');
+            }
+        }
+
+        animate();
+    }
+    this.incrementScore = (increments) => {
+        // increment score
+        this.score += SCORE_INCREMENT * increments;
+        // this.scoreEle.innerText = this.score;
+        this.animateScoreIncrement(this.score - SCORE_INCREMENT * increments, this.score);
     }
 
     this.repaintBoard = () => {
@@ -166,6 +183,7 @@ function App() {
 
     this.scanForRows = () => {
         // scan for filled rows and explode the first
+        let scoreIncrements = 0;
         for (let row of this.board) {
             let filled = true;
             let i = 0;
@@ -181,26 +199,35 @@ function App() {
                 this.board.splice(rowIndx, 1);
                 this.board.unshift(Array(this.width).fill(0));
                 this.repaintBoard();
-                this.incrementScore();
+                scoreIncrements++;
                 // break;
             }
         }
+
+        this.incrementScore(scoreIncrements);
+
     }
 
     this.stop = () => {
         clearInterval(this.interval);
     }
 
+    this.clear = () => {
+        this.activeTet.clear();
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
     this.showGameOver = () => {
         this.context.fillStyle = 'white';
         this.context.font = '30px Arial';
-        this.context.fillText('Game Over', 1 * TILE_SIZE.width  , (GAME_OVER_AT_ROW + 2) * TILE_SIZE.height);
+        this.context.fillText('Game Over', 1 * TILE_SIZE.width, (GAME_OVER_AT_ROW + 2) * TILE_SIZE.height);
     }
 
     this.scanGameOver = () => {
         // check if the active tetromino is at the top of the board
         if (this.isCollision(0, 0)) {
             this.stop();
+            this.isGameOver = true;
             this.showGameOver();
         }
     }
@@ -210,11 +237,19 @@ function App() {
         if (this.orien < 0) {
             this.orien = 3;
         }
-         
+
     }
 
     this.resetOrien = () => {
         this.orien = this.activeTet.orien; // % 4 keeps the this.orien under 4 => (0 - 3)
+    }
+
+    this.bindButtons = () => {
+        document.getElementById('moveRight').addEventListener('click' , () => {this.move('right')});
+        document.getElementById('moveLeft').addEventListener('click' , () => {this.move('left')});
+        document.getElementById('rotateAnti').addEventListener('click' , () => {this.move('anti')});
+        document.getElementById('rotateClock').addEventListener('click' , () => {this.move('clock')});
+        document.getElementById('down').addEventListener('click' , () => {this.move('down')});
     }
 
     this.bindKeys = () => {
@@ -249,7 +284,39 @@ function App() {
             }
         });
     }
+    this.init = () => {
+        this.interval = null;
+        this.activeTet = null;
+        this.activeX = 0;
+        this.activeY = 0;
+        this.orien = 0; // 0,1,2,3
+        this.markingNumberCounter = 0;
+        this.score = 0;
+        this.scoreEle = document.getElementById('score');
 
+        this.isGameOver = false;
+
+        this.blockColorsInOrder = ['#131516'];
+
+        this.tetrominoQueue = new TetrominoQueue();
+
+        this.initBoard();
+    }
+
+    this.run = () => {
+        this.tetrominoQueue.randomizeQueue();
+        this.interval = setInterval(this.updateGameArea, 1 / FPS * 1000);
+        this.createNewTetromino();
+        this.draw();
+    }
+
+    this.restart = () => {
+        this.stop();
+        this.clear();
+        this.init();
+        this.run();
+        
+    }
     this.move = (dir) => {
         switch (dir) {
             case 'gravity':
@@ -265,9 +332,9 @@ function App() {
                 break;
             case 'left':
                 if (this.checkMove({
-                        xChange: HORIZONTAL_MOVEMENT_VEL.xChange * -1,
-                        yChange: HORIZONTAL_MOVEMENT_VEL.yChange
-                    })) {
+                    xChange: HORIZONTAL_MOVEMENT_VEL.xChange * -1,
+                    yChange: HORIZONTAL_MOVEMENT_VEL.yChange
+                })) {
                     this.markTetromino(0, 0, this.activeTet.shape, 0);
                     this.markTetromino(HORIZONTAL_MOVEMENT_VEL.xChange * -1, HORIZONTAL_MOVEMENT_VEL.yChange, this.activeTet.shape, this.activeTet.markingNo);
                     this.activeX += HORIZONTAL_MOVEMENT_VEL.xChange * -1;
@@ -372,10 +439,9 @@ function App() {
         this.move(dir);
 
         // rotate
-        if(numb > 0) {
+        if (numb > 0) {
             this.move('anti');
-        }
-        else {
+        } else {
             this.move('clock');
         }
         this.changeOrien(numb);
@@ -390,15 +456,15 @@ function App() {
             let xIndex = block.x + Math.floor(this.activeX / TILE_SIZE.width);
             let yIndex = block.y + Math.floor(this.activeY / TILE_SIZE.height);
             let boardPos = this.board[yIndex][xIndex];
-            
+
             if (xPos < 0 ||
                 xPos > this.canvas.width - WALL_THICKNESS) {
-                
+
                 // wall kick
-                if(xPos < 0) {
-                    this.rotationWallKick(numb , 'right');
+                if (xPos < 0) {
+                    this.rotationWallKick(numb, 'right');
                 } else {
-                    this.rotationWallKick(numb , 'left');
+                    this.rotationWallKick(numb, 'left');
                 }
 
                 canRotate &= false;
@@ -418,7 +484,7 @@ function App() {
     // takes x and y change
     this.isOutBoundaries = (xChange, yChange) => {
         let isOB = false;
-        this.activeTet.blockArr.forEach(block => {
+        this.activeTet?.blockArr.forEach(block => {
             if (xChange + block.x < 0 ||
                 xChange + block.x > this.canvas.width - WALL_THICKNESS ||
                 yChange + block.y < 0 ||
@@ -540,16 +606,4 @@ function Block(x, y, ctx) {
     this.clear = function () {
         this.ctx.clearRect(this.x, this.y, TILE_SIZE.width, TILE_SIZE.height);
     }
-}
-
-const startBtn = document.getElementById('startBtn');
-
-document.body.onload = () => {
-    let app = new App(); 
-    let clickHandler = () => {
-        app.start();
-        startBtn.removeEventListener('click' , clickHandler);
-    }  
-    startBtn.addEventListener('click' , clickHandler); 
-
 }

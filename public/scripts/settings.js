@@ -3,16 +3,16 @@ const CANVAS_SIZE = {
     height: 800,
 }
 
-const GAME_OVER_AT_ROW = 12;
+const GAME_OVER_AT_ROW = 35;
 
-const TILE_CREATED_AT = 10;
+const TILE_CREATED_AT = 2;
 
 const TILE_SIZE = {
     width: 20,
     height: 20
 }
 
-const FPS = 10;
+const FPS = 12;
 
 const BORDER_THICKNESS = 4;
 
@@ -28,6 +28,8 @@ const HORIZONTAL_MOVEMENT_VEL = Object.assign({} , {xChange: 20, yChange: 0});
 const FLOOR_THICKNESS = 20;
 
 const DOWN_MOVEMENT_VEL = Object.assign({} , {...GRAVITY_VEL,yChange: 40});
+
+const SCORE_INCREMENT = 966;
 
 
 const TETROMINOES = {
